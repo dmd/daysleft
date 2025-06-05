@@ -94,6 +94,7 @@ for ($i = 1; $i <= 4; $i++) {
             grid-template-rows: 1fr 1fr;
             gap: 20px;
             height: 100%;
+            position: relative;
         }
 
         .countdown-cell {
@@ -139,6 +140,16 @@ for ($i = 1; $i <= 4; $i++) {
         .empty {
             visibility: hidden;
         }
+
+        .current-date {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            font-weight: 700;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -149,6 +160,7 @@ for ($i = 1; $i <= 4; $i++) {
                 <div class="countdown-text<?php echo $countdowns[$i]['hasError'] ? ' error' : ''; ?>"><?php echo $countdowns[$i]['text']; ?></div>
             </div>
         <?php endfor; ?>
+        <div class="current-date"><?php echo date('D M j'); ?></div>
     </div>
 </body>
 </html>
