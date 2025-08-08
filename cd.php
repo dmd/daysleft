@@ -70,6 +70,43 @@ $countdowns = [];
 for ($i = 1; $i <= 4; $i++) {
     $countdowns[$i] = getCountdownData($i);
 }
+
+// Sort countdowns by days left (farthest to soonest: highest number to lowest)
+// Filter out empty entries first, then sort the remaining ones
+$nonEmptyCountdowns = array_filter($countdowns, function($countdown) {
+    return !$countdown['isEmpty'];
+});
+
+// Sort by days left (descending: farthest in future first)
+uasort($nonEmptyCountdowns, function($a, $b) {
+    // Handle error cases - put them at the end
+    if ($a['hasError'] && !$b['hasError']) return 1;
+    if (!$a['hasError'] && $b['hasError']) return -1;
+    if ($a['hasError'] && $b['hasError']) return 0;
+    
+    // Sort by days left (descending)
+    return $b['number'] - $a['number'];
+});
+
+// Create sorted array maintaining grid positions (1-4)
+$sortedCountdowns = [];
+$position = 1;
+foreach ($nonEmptyCountdowns as $countdown) {
+    $sortedCountdowns[$position] = $countdown;
+    $position++;
+}
+
+// Fill remaining positions with empty entries
+for ($i = $position; $i <= 4; $i++) {
+    $sortedCountdowns[$i] = [
+        'number' => '',
+        'text' => '',
+        'hasError' => false,
+        'isEmpty' => true
+    ];
+}
+
+$countdowns = $sortedCountdowns;
 ?>
 <!DOCTYPE html>
 <html lang="en">
