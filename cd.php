@@ -107,6 +107,54 @@ for ($i = $position; $i <= 4; $i++) {
 }
 
 $countdowns = $sortedCountdowns;
+
+// Calculate dots based on days since .lastmarzi file mtime
+function getDotCount() {
+    $filePath = '/home/edges/3e.org/private/.lastmarzi';
+    if (file_exists($filePath)) {
+        $mtime = filemtime($filePath);
+        if ($mtime !== false) {
+            $fileDate = new DateTime();
+            $fileDate->setTimestamp($mtime);
+            $fileDate->setTime(0, 0, 0); // Reset to start of day
+            
+            $today = new DateTime();
+            $today->setTime(0, 0, 0); // Reset to start of day
+            
+            $diff = $today->diff($fileDate);
+            $daysSince = $diff->days;
+            
+            return max(0, $daysSince); // Don't return negative values
+        }
+    }
+    return 0; // Return 0 if file doesn't exist or can't get mtime
+}
+
+$dotCount = getDotCount();
+
+// Get letterday from API
+function getLetterDay() {
+    $url = 'https://3e.org/gibbs/letter_day_calculator.php';
+    $context = stream_context_create([
+        'http' => [
+            'timeout' => 5 // 5 second timeout
+        ]
+    ]);
+    
+    $json = @file_get_contents($url, false, $context);
+    if ($json === false) {
+        return ''; // Return empty string if API call fails
+    }
+    
+    $data = json_decode($json, true);
+    if (json_last_error() !== JSON_ERROR_NONE || !isset($data['letterday'])) {
+        return ''; // Return empty string if JSON is invalid or letterday not found
+    }
+    
+    return $data['letterday'];
+}
+
+$letterDay = getLetterDay();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -189,6 +237,19 @@ $countdowns = $sortedCountdowns;
             z-index: 10;
             pointer-events: none;
         }
+
+        .center-dots {
+            position: absolute;
+            top: calc(50% + 2rem);
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: black;
+            z-index: 10;
+            pointer-events: none;
+            letter-spacing: 0.2rem;
+        }
     </style>
 </head>
 <body>
@@ -199,7 +260,8 @@ $countdowns = $sortedCountdowns;
                 <div class="countdown-text<?php echo $countdowns[$i]['hasError'] ? ' error' : ''; ?>"><?php echo $countdowns[$i]['text']; ?></div>
             </div>
         <?php endfor; ?>
-        <div class="center-date"><?php echo date('D M j'); ?></div>
+        <div class="center-date"><?php echo date('D M j') . ($letterDay ? ' (' . htmlspecialchars($letterDay) . ')' : ''); ?></div>
+        <div class="center-dots"><?php echo str_repeat('·', $dotCount); ?></div>
     </div>
 </body>
 </html>
