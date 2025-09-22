@@ -260,7 +260,7 @@ $letterDay = getLetterDay();
                 <div class="countdown-text<?php echo $countdowns[$i]['hasError'] ? ' error' : ''; ?>"><?php echo $countdowns[$i]['text']; ?></div>
             </div>
         <?php endfor; ?>
-        <div class="center-date"><?php echo date('D M j') . ($letterDay ? ' (' . htmlspecialchars($letterDay) . ')' : ''); ?></div>
+        <div class="center-date"><?php echo date('D M j') . ($letterDay != ' ' ? ' (' . htmlspecialchars($letterDay) . ')' : ''); ?></div>
         <div class="center-dots"><?php echo str_repeat('·', $dotCount); ?></div>
     </div>
 </body>
