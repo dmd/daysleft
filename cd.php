@@ -236,6 +236,7 @@ $letterDay = getLetterDay();
             color: black;
             z-index: 10;
             pointer-events: none;
+            white-space: nowrap;
         }
 
         .center-dots {
