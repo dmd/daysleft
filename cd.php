@@ -134,7 +134,7 @@ $dotCount = getDotCount();
 
 // Get letterday from API
 function getLetterDay() {
-    $url = 'https://3e.org/gibbs/letter_day_calculator.php';
+    $url = 'https://3e.org/aps/letter_day_calculator.php';
     $context = stream_context_create([
         'http' => [
             'timeout' => 5 // 5 second timeout
