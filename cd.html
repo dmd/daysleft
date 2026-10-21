@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Days Left Countdown</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: white;
+            color: black;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 20px;
+            height: 100%;
+            position: relative;
+        }
+
+        .countdown-cell {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .countdown-number {
+            font-size: 6rem;
+            font-weight: 900;
+            line-height: 0.8;
+            margin: 0;
+            padding: 0;
+        }
+
+        .countdown-text {
+            font-size: 1.44rem;
+            font-weight: 700;
+            margin-top: 1rem;
+            max-width: 90%;
+            word-wrap: break-word;
+            line-height: 0.8;
+        }
+
+        .date-text {
+            font-size: 1.08rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+            display: inline-block;
+        }
+
+        .error {
+            font-size: 1rem;
+            font-weight: 700;
+            color: black;
+        }
+
+        .empty {
+            visibility: hidden;
+        }
+
+        .center-date {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            font-weight: 700;
+            color: black;
+            z-index: 10;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-container" id="grid">
+        <div class="center-date" id="centerDate"></div>
+    </div>
+    <script>
+        var MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
+            'August', 'September', 'October', 'November', 'December'];
+        var DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        var MS_PER_DAY = 86400000;
+
+        function getQueryParam(name) {
+            var match = new RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+            return match ? decodeURIComponent(match[1].replace(/\+/g, ' ')) : '';
+        }
+
+        function parseDate(dateStr) {
+            var match = /^(\d{4})-(\d{1,2})-(\d{1,2})$/.exec(dateStr);
+            if (!match) return null;
+            var date = new Date(+match[1], match[2] - 1, +match[3]);
+            if (date.getMonth() !== match[2] - 1) return null;
+            return date;
+        }
+
+        function escapeHtml(text) {
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(text));
+            return div.innerHTML;
+        }
+
+        function getCountdownData(index) {
+            var dateStr = getQueryParam('date' + index);
+            var event = getQueryParam('event' + index);
+            if (!dateStr || !event) return null;
+
+            var target = parseDate(dateStr);
+            if (!target) {
+                return { number: '!', text: 'Invalid date format', hasError: true };
+            }
+
+            var now = new Date();
+            var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            var daysLeft = Math.round((target - today) / MS_PER_DAY);
+            var formattedDate = MONTHS[target.getMonth()] + ' ' + target.getDate() + ', ' + target.getFullYear();
+            var dateLine = '<br><span class="date-text">' + escapeHtml(formattedDate) + '</span>';
+            var label = escapeHtml(event);
+
+            if (daysLeft < 0) label += ' was ' + Math.abs(daysLeft) + ' days ago';
+            else if (daysLeft === 0) label += ' is today!';
+
+            return { number: daysLeft, text: label + dateLine, hasError: false };
+        }
+
+        function render() {
+            var countdowns = [];
+            for (var i = 1; i <= 4; i++) {
+                var data = getCountdownData(i);
+                if (data) countdowns.push(data);
+            }
+
+            countdowns.sort(function (a, b) {
+                if (a.hasError !== b.hasError) return a.hasError ? 1 : -1;
+                if (a.hasError) return 0;
+                return b.number - a.number;
+            });
+
+            var grid = document.getElementById('grid');
+            var centerDate = document.getElementById('centerDate');
+            for (var position = 0; position < 4; position++) {
+                var countdown = countdowns[position];
+                var cell = document.createElement('div');
+                cell.className = 'countdown-cell' + (countdown ? '' : ' empty');
+                cell.innerHTML =
+                    '<div class="countdown-number">' + (countdown ? escapeHtml(String(countdown.number)) : '') + '</div>' +
+                    '<div class="countdown-text' + (countdown && countdown.hasError ? ' error' : '') + '">' +
+                    (countdown ? countdown.text : '') + '</div>';
+                grid.insertBefore(cell, centerDate);
+            }
+
+            var now = new Date();
+            centerDate.textContent = DAYS[now.getDay()] + ' ' + MONTHS[now.getMonth()].slice(0, 3) + ' ' + now.getDate();
+        }
+
+        function loadLetterDay() {
+            var request = new XMLHttpRequest();
+            request.open('GET', '/aps/letter_day_calculator.php');
+            request.timeout = 5000;
+            request.onload = function () {
+                try {
+                    var letterDay = JSON.parse(request.responseText).letterday;
+                    if (letterDay && letterDay.trim()) {
+                        var centerDate = document.getElementById('centerDate');
+                        centerDate.textContent += ' (' + letterDay + ')';
+                    }
+                } catch (e) {}
+            };
+            request.send();
+        }
+
+        render();
+        loadLetterDay();
+    </script>
+</body>
+</html>
