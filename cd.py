@@ -9,7 +9,7 @@ from urllib.parse import parse_qs
 from zoneinfo import ZoneInfo
 
 TIMEZONE = ZoneInfo("America/New_York")
-LETTER_DAY_URL = "https://3e.org/aps/letter_day_calculator.php"
+LETTER_DAY_URL = "https://3e.org/aps/letter_day_calculator.py"
 SLOTS = 4
 
 STYLE = """
