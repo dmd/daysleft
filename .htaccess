@@ -1,1 +1,1 @@
-Redirect permanent /daysleft/cd.php /daysleft/cd.html
+RedirectMatch permanent ^/daysleft/cd\.(php|html)$ /daysleft/cd.py
